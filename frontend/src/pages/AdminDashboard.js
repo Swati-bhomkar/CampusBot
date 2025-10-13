@@ -313,23 +313,23 @@ function DepartmentManager({ departments, fetchAllData }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6" data-testid="department-manager">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Departments ({departments.length})</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Student Committee ({departments.length})</h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button data-testid="add-department-button" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full">
-              <Plus className="w-4 h-4 mr-2" /> Add Department
+              <Plus className="w-4 h-4 mr-2" /> Add Committee
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Department</DialogTitle>
+              <DialogTitle>Add New Committee</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="department-form">
               <Input placeholder="Name" data-testid="dept-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               <Textarea placeholder="Description" data-testid="dept-description-input" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
               <Input placeholder="Contact" data-testid="dept-contact-input" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
               <Input placeholder="Building" data-testid="dept-building-input" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Button type="submit" data-testid="submit-department-button" className="w-full">Create Department</Button>
+              <Button type="submit" data-testid="submit-department-button" className="w-full">Create Committee</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -338,14 +338,14 @@ function DepartmentManager({ departments, fetchAllData }) {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Department</DialogTitle>
+              <DialogTitle>Edit Committee</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleUpdate} className="space-y-4">
               <Input placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
               <Input placeholder="Contact" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
               <Input placeholder="Building" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Department</Button>
+              <Button type="submit" className="w-full">Update Committee</Button>
             </form>
           </DialogContent>
         </Dialog>

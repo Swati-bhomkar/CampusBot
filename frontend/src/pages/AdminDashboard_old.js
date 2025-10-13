@@ -4,7 +4,7 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { MessageCircle, Plus, Trash2, LogOut, ArrowLeft, Edit } from 'lucide-react';
+import { MessageCircle, Plus, Trash2, LogOut, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
@@ -139,9 +139,7 @@ function AdminDashboard({ user, setUser }) {
 // FAQ Manager Component
 function FAQManager({ faqs, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState({ question: '', answer: '', category: '', tags: '' });
-  const [editingItem, setEditingItem] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -156,34 +154,6 @@ function FAQManager({ faqs, fetchAllData }) {
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create FAQ');
-    }
-  };
-
-  const handleEdit = (faq) => {
-    setEditingItem(faq);
-    setFormData({ 
-      question: faq.question, 
-      answer: faq.answer, 
-      category: faq.category, 
-      tags: faq.tags.join(', ') 
-    });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/faqs/${editingItem.id}`, {
-        ...formData,
-        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
-      }, { withCredentials: true });
-      toast.success('FAQ updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ question: '', answer: '', category: '', tags: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to update FAQ');
     }
   };
 
@@ -212,27 +182,35 @@ function FAQManager({ faqs, fetchAllData }) {
               <DialogTitle>Add New FAQ</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="faq-form">
-              <Input placeholder="Question" data-testid="faq-question-input" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} required />
-              <Textarea placeholder="Answer" data-testid="faq-answer-input" value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} required rows={4} />
-              <Input placeholder="Category (e.g., Admissions, Courses)" data-testid="faq-category-input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required />
-              <Input placeholder="Tags (comma-separated)" data-testid="faq-tags-input" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
+              <Input
+                placeholder="Question"
+                data-testid="faq-question-input"
+                value={formData.question}
+                onChange={(e) => setFormData({...formData, question: e.target.value})}
+                required
+              />
+              <Textarea
+                placeholder="Answer"
+                data-testid="faq-answer-input"
+                value={formData.answer}
+                onChange={(e) => setFormData({...formData, answer: e.target.value})}
+                required
+                rows={4}
+              />
+              <Input
+                placeholder="Category (e.g., Admissions, Courses)"
+                data-testid="faq-category-input"
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                required
+              />
+              <Input
+                placeholder="Tags (comma-separated)"
+                data-testid="faq-tags-input"
+                value={formData.tags}
+                onChange={(e) => setFormData({...formData, tags: e.target.value})}
+              />
               <Button type="submit" data-testid="submit-faq-button" className="w-full">Create FAQ</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit FAQ</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4" data-testid="faq-edit-form">
-              <Input placeholder="Question" data-testid="faq-edit-question-input" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} required />
-              <Textarea placeholder="Answer" data-testid="faq-edit-answer-input" value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} required rows={4} />
-              <Input placeholder="Category" data-testid="faq-edit-category-input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required />
-              <Input placeholder="Tags (comma-separated)" data-testid="faq-edit-tags-input" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
-              <Button type="submit" data-testid="update-faq-button" className="w-full">Update FAQ</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -243,14 +221,15 @@ function FAQManager({ faqs, fetchAllData }) {
           <div key={faq.id} data-testid={`faq-item-${faq.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-gray-900 flex-1">{faq.question}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(faq)} data-testid={`edit-faq-${faq.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(faq.id)} data-testid={`delete-faq-${faq.id}`} variant="ghost" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                onClick={() => handleDelete(faq.id)}
+                data-testid={`delete-faq-${faq.id}`}
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
             <p className="text-gray-600 text-sm mb-2">{faq.answer}</p>
             <div className="flex gap-2 flex-wrap">
@@ -269,9 +248,7 @@ function FAQManager({ faqs, fetchAllData }) {
 // Department Manager
 function DepartmentManager({ departments, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', contact: '', building: '' });
-  const [editingItem, setEditingItem] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -283,26 +260,6 @@ function DepartmentManager({ departments, fetchAllData }) {
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create department');
-    }
-  };
-
-  const handleEdit = (dept) => {
-    setEditingItem(dept);
-    setFormData({ name: dept.name, description: dept.description, contact: dept.contact, building: dept.building });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/departments/${editingItem.id}`, formData, { withCredentials: true });
-      toast.success('Department updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ name: '', description: '', contact: '', building: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to update department');
     }
   };
 
@@ -339,22 +296,6 @@ function DepartmentManager({ departments, fetchAllData }) {
             </form>
           </DialogContent>
         </Dialog>
-
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Department</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <Input placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
-              <Input placeholder="Contact" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
-              <Input placeholder="Building" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Department</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -362,14 +303,9 @@ function DepartmentManager({ departments, fetchAllData }) {
           <div key={dept.id} data-testid={`dept-item-${dept.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-gray-900">{dept.name}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(dept)} data-testid={`edit-dept-${dept.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(dept.id)} data-testid={`delete-dept-${dept.id}`} variant="ghost" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button onClick={() => handleDelete(dept.id)} data-testid={`delete-dept-${dept.id}`} variant="ghost" size="sm" className="text-red-600">
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
             <p className="text-gray-600 text-sm mb-2">{dept.description}</p>
             <p className="text-xs text-gray-500">Contact: {dept.contact}</p>
@@ -381,7 +317,7 @@ function DepartmentManager({ departments, fetchAllData }) {
   );
 }
 
-// Faculty Manager (already has edit functionality)
+// Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -529,7 +465,9 @@ function FacultyCard({ faculty, handleEdit, handleDelete, isPrincipal }) {
             size="sm" 
             className="text-blue-600 hover:text-blue-700"
           >
-            <Edit className="w-4 h-4" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            </svg>
           </Button>
           <Button 
             onClick={() => handleDelete(faculty.id)} 
@@ -552,9 +490,7 @@ function FacultyCard({ faculty, handleEdit, handleDelete, isPrincipal }) {
 // Event Manager
 function EventManager({ events, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', date: '', location: '', organizer: '' });
-  const [editingItem, setEditingItem] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -566,26 +502,6 @@ function EventManager({ events, fetchAllData }) {
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create event');
-    }
-  };
-
-  const handleEdit = (event) => {
-    setEditingItem(event);
-    setFormData({ title: event.title, description: event.description, date: event.date, location: event.location, organizer: event.organizer });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/events/${editingItem.id}`, formData, { withCredentials: true });
-      toast.success('Event updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ title: '', description: '', date: '', location: '', organizer: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to update event');
     }
   };
 
@@ -623,23 +539,6 @@ function EventManager({ events, fetchAllData }) {
             </form>
           </DialogContent>
         </Dialog>
-
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Event</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <Input placeholder="Title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
-              <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
-              <Input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} required />
-              <Input placeholder="Location" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} required />
-              <Input placeholder="Organizer" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Event</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -647,14 +546,9 @@ function EventManager({ events, fetchAllData }) {
           <div key={event.id} data-testid={`event-item-${event.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-gray-900">{event.title}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(event)} data-testid={`edit-event-${event.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(event.id)} data-testid={`delete-event-${event.id}`} variant="ghost" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button onClick={() => handleDelete(event.id)} data-testid={`delete-event-${event.id}`} variant="ghost" size="sm" className="text-red-600">
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
             <p className="text-gray-600 text-sm mb-2">{event.description}</p>
             <p className="text-xs text-gray-500">Date: {event.date}</p>
@@ -670,9 +564,7 @@ function EventManager({ events, fetchAllData }) {
 // Location Manager
 function LocationManager({ locations, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', building: '', description: '', floor: '' });
-  const [editingItem, setEditingItem] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -684,26 +576,6 @@ function LocationManager({ locations, fetchAllData }) {
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create location');
-    }
-  };
-
-  const handleEdit = (location) => {
-    setEditingItem(location);
-    setFormData({ name: location.name, building: location.building, description: location.description, floor: location.floor });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/locations/${editingItem.id}`, formData, { withCredentials: true });
-      toast.success('Location updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ name: '', building: '', description: '', floor: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to update location');
     }
   };
 
@@ -740,22 +612,6 @@ function LocationManager({ locations, fetchAllData }) {
             </form>
           </DialogContent>
         </Dialog>
-
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Location</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <Input placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Input placeholder="Building" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={2} />
-              <Input placeholder="Floor" value={formData.floor} onChange={(e) => setFormData({...formData, floor: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Location</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -763,14 +619,9 @@ function LocationManager({ locations, fetchAllData }) {
           <div key={loc.id} data-testid={`location-item-${loc.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-gray-900">{loc.name}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(loc)} data-testid={`edit-location-${loc.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(loc.id)} data-testid={`delete-location-${loc.id}`} variant="ghost" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button onClick={() => handleDelete(loc.id)} data-testid={`delete-location-${loc.id}`} variant="ghost" size="sm" className="text-red-600">
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
             <p className="text-gray-600 text-sm mb-2">{loc.description}</p>
             <p className="text-xs text-gray-500">Building: {loc.building}</p>

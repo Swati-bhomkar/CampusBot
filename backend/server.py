@@ -362,6 +362,25 @@ async def create_faculty(faculty_data: FacultyCreate, request: Request):
     await db.faculty.insert_one(doc)
     return faculty
 
+@api_router.put("/faculty/{faculty_id}", response_model=Faculty)
+async def update_faculty(faculty_id: str, faculty_update: FacultyUpdate, request: Request):
+    await require_admin(request)
+    existing_faculty = await db.faculty.find_one({"id": faculty_id}, {"_id": 0})
+    if not existing_faculty:
+        raise HTTPException(status_code=404, detail="Faculty not found")
+    
+    update_data = {k: v for k, v in faculty_update.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.faculty.update_one({"id": faculty_id}, {"$set": update_data})
+    
+    updated_faculty = await db.faculty.find_one({"id": faculty_id}, {"_id": 0})
+    
+    if isinstance(updated_faculty['created_at'], str):
+        updated_faculty['created_at'] = datetime.fromisoformat(updated_faculty['created_at'])
+    
+    return Faculty(**updated_faculty)
+
 @api_router.delete("/faculty/{faculty_id}")
 async def delete_faculty(faculty_id: str, request: Request):
     await require_admin(request)

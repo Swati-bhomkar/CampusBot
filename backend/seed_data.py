@@ -132,7 +132,18 @@ async def seed_data():
     faculty = [
         {
             "id": str(uuid.uuid4()),
+            "name": "Dr. Rajesh Kumar",
+            "role": "Principal",
+            "department": "Administration",
+            "bio": "PhD in Educational Leadership. 25+ years of experience in academic administration and institution building.",
+            "email": "principal@campus.edu",
+            "office": "Administration Building, Room 101",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
             "name": "Dr. Sarah Johnson",
+            "role": "Professor & HOD",
             "department": "Computer Science",
             "bio": "PhD in Artificial Intelligence. Research focus on machine learning and neural networks.",
             "email": "s.johnson@campus.edu",
@@ -142,6 +153,7 @@ async def seed_data():
         {
             "id": str(uuid.uuid4()),
             "name": "Prof. Michael Chen",
+            "role": "Associate Professor",
             "department": "Business Administration",
             "bio": "MBA, CPA. 15 years experience in corporate finance and accounting.",
             "email": "m.chen@campus.edu",
@@ -151,6 +163,7 @@ async def seed_data():
         {
             "id": str(uuid.uuid4()),
             "name": "Dr. Emily Rodriguez",
+            "role": "Assistant Professor",
             "department": "Engineering",
             "bio": "PhD in Mechanical Engineering. Specializes in renewable energy systems.",
             "email": "e.rodriguez@campus.edu",
@@ -160,6 +173,7 @@ async def seed_data():
         {
             "id": str(uuid.uuid4()),
             "name": "Prof. David Williams",
+            "role": "Professor",
             "department": "Arts & Humanities",
             "bio": "PhD in Literature. Published author and poetry expert.",
             "email": "d.williams@campus.edu",

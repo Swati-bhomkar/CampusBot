@@ -95,11 +95,12 @@ function AdminDashboard({ user, setUser }) {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="faqs" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8 bg-white rounded-xl p-2 shadow-lg">
+          <TabsList className="grid w-full grid-cols-6 mb-8 bg-white rounded-xl p-2 shadow-lg">
             <TabsTrigger value="faqs" data-testid="tab-faqs">FAQs</TabsTrigger>
             <TabsTrigger value="departments" data-testid="tab-departments">Departments</TabsTrigger>
             <TabsTrigger value="faculty" data-testid="tab-faculty">Faculty</TabsTrigger>
             <TabsTrigger value="events" data-testid="tab-events">Events</TabsTrigger>
+            <TabsTrigger value="locations" data-testid="tab-locations">Locations</TabsTrigger>
             <TabsTrigger value="queries" data-testid="tab-queries">User Queries</TabsTrigger>
           </TabsList>
 
@@ -117,6 +118,10 @@ function AdminDashboard({ user, setUser }) {
 
           <TabsContent value="events">
             <EventManager events={events} setEvents={setEvents} fetchAllData={fetchAllData} />
+          </TabsContent>
+
+          <TabsContent value="locations">
+            <LocationManager locations={locations} setLocations={setLocations} fetchAllData={fetchAllData} />
           </TabsContent>
 
           <TabsContent value="queries">

@@ -663,114 +663,120 @@ function EventManager({ events, fetchAllData }) {
 
 // Location Manager
 function LocationManager({ locations, fetchAllData }) {
-  const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', building: '', description: '', floor: '' });
-  const [editingItem, setEditingItem] = useState(null);
+  const [selectedFloors, setSelectedFloors] = useState([]);
+  const availableFloors = ['2nd Floor', '3rd Floor', '4th Floor', '5th Floor'];
+  
+  // Get existing floors
+  const existingFloors = locations.map(loc => loc.floor);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API}/locations`, formData, { withCredentials: true });
-      toast.success('Location created');
-      setOpen(false);
-      setFormData({ name: '', building: '', description: '', floor: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to create location');
+  const handleFloorToggle = (floor) => {
+    if (selectedFloors.includes(floor)) {
+      setSelectedFloors(selectedFloors.filter(f => f !== floor));
+    } else {
+      setSelectedFloors([...selectedFloors, floor]);
     }
   };
 
-  const handleEdit = (location) => {
-    setEditingItem(location);
-    setFormData({ name: location.name, building: location.building, description: location.description, floor: location.floor });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
+  const handleAdd = async () => {
     try {
-      await axios.put(`${API}/locations/${editingItem.id}`, formData, { withCredentials: true });
-      toast.success('Location updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ name: '', building: '', description: '', floor: '' });
+      // Add all selected floors
+      for (const floor of selectedFloors) {
+        await axios.post(`${API}/locations`, { floor }, { withCredentials: true });
+      }
+      toast.success('Floors added successfully');
+      setSelectedFloors([]);
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to update location');
+      toast.error('Failed to add floors');
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API}/locations/${id}`, { withCredentials: true });
-      toast.success('Location deleted');
+      toast.success('Floor deleted');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to delete location');
+      toast.error('Failed to delete floor');
     }
   };
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6" data-testid="location-manager">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Locations ({locations.length})</h2>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="add-location-button" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full">
-              <Plus className="w-4 h-4 mr-2" /> Add Location
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Location</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4" data-testid="location-form">
-              <Input placeholder="Name" data-testid="location-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Input placeholder="Building" data-testid="location-building-input" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Textarea placeholder="Description" data-testid="location-description-input" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={2} />
-              <Input placeholder="Floor" data-testid="location-floor-input" value={formData.floor} onChange={(e) => setFormData({...formData, floor: e.target.value})} required />
-              <Button type="submit" data-testid="submit-location-button" className="w-full">Create Location</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Floors</h2>
 
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Location</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <Input placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Input placeholder="Building" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={2} />
-              <Input placeholder="Floor" value={formData.floor} onChange={(e) => setFormData({...formData, floor: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Location</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+      {/* Floor Selection */}
+      <div className="mb-8 p-6 bg-gray-50 rounded-xl">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Floors to Add</h3>
+        <div className="space-y-3">
+          {availableFloors.map((floor) => {
+            const isExisting = existingFloors.includes(floor);
+            const isSelected = selectedFloors.includes(floor);
+            
+            return (
+              <div key={floor} className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id={floor}
+                  checked={isSelected}
+                  onChange={() => handleFloorToggle(floor)}
+                  disabled={isExisting}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid={`floor-checkbox-${floor}`}
+                />
+                <label 
+                  htmlFor={floor} 
+                  className={`text-base font-medium ${isExisting ? 'text-gray-400 line-through' : 'text-gray-900 cursor-pointer'}`}
+                >
+                  {floor} {isExisting && '(Already added)'}
+                </label>
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedFloors.length > 0 && (
+          <Button
+            onClick={handleAdd}
+            data-testid="add-floors-button"
+            className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-6"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Selected Floors ({selectedFloors.length})
+          </Button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {locations.map((loc) => (
-          <div key={loc.id} data-testid={`location-item-${loc.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-gray-900">{loc.name}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(loc)} data-testid={`edit-location-${loc.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(loc.id)} data-testid={`delete-location-${loc.id}`} variant="ghost" size="sm" className="text-red-600">
+      {/* Existing Floors */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Floors ({locations.length})</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {locations.map((loc) => (
+            <div 
+              key={loc.id} 
+              data-testid={`location-item-${loc.id}`} 
+              className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-br from-blue-50 to-indigo-50"
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">{loc.floor.charAt(0)}</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900">{loc.floor}</h3>
+                </div>
+                <Button 
+                  onClick={() => handleDelete(loc.id)} 
+                  data-testid={`delete-location-${loc.id}`} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-600 hover:text-red-700"
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mb-2">{loc.description}</p>
-            <p className="text-xs text-gray-500">Building: {loc.building}</p>
-            <p className="text-xs text-gray-500">Floor: {loc.floor}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

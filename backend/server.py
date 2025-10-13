@@ -445,6 +445,25 @@ async def create_event(event_data: EventCreate, request: Request):
     await db.events.insert_one(doc)
     return event
 
+@api_router.put("/events/{event_id}", response_model=Event)
+async def update_event(event_id: str, event_update: EventUpdate, request: Request):
+    await require_admin(request)
+    existing_event = await db.events.find_one({"id": event_id}, {"_id": 0})
+    if not existing_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    update_data = {k: v for k, v in event_update.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.events.update_one({"id": event_id}, {"$set": update_data})
+    
+    updated_event = await db.events.find_one({"id": event_id}, {"_id": 0})
+    
+    if isinstance(updated_event['created_at'], str):
+        updated_event['created_at'] = datetime.fromisoformat(updated_event['created_at'])
+    
+    return Event(**updated_event)
+
 @api_router.delete("/events/{event_id}")
 async def delete_event(event_id: str, request: Request):
     await require_admin(request)

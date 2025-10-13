@@ -128,6 +128,13 @@ class EventCreate(BaseModel):
     location: str
     organizer: str
 
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[str] = None
+    location: Optional[str] = None
+    organizer: Optional[str] = None
+
 class Location(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

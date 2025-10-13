@@ -221,50 +221,12 @@ async def seed_data():
     locations = [
         {
             "id": str(uuid.uuid4()),
-            "name": "Main Library",
-            "building": "Academic Building",
-            "description": "Study spaces, computer labs, research resources, quiet zones",
             "floor": "2nd Floor",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
-            "name": "Student Center",
-            "building": "Student Center",
-            "description": "Dining hall, student lounge, meeting rooms, recreation area",
-            "floor": "Ground Floor",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Computer Lab A",
-            "building": "Engineering Building",
-            "description": "High-performance computers, software development tools, 24/7 access",
             "floor": "3rd Floor",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Admissions Office",
-            "building": "Administration Building",
-            "description": "Admissions counseling, application help, campus tours",
-            "floor": "1st Floor",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Fitness Center",
-            "building": "Recreation Center",
-            "description": "Cardio equipment, weights, basketball court, swimming pool",
-            "floor": "All Floors",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Financial Aid Office",
-            "building": "Administration Building",
-            "description": "Financial aid counseling, scholarship information, payment plans",
-            "floor": "2nd Floor",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
     ]

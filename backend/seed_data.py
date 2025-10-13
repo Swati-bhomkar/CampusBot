@@ -136,7 +136,6 @@ async def seed_data():
             "role": "Principal",
             "qualification": "PhD in Educational Leadership",
             "bio": "25+ years of experience in academic administration and institution building.",
-            "email": "principal@campus.edu",
             "office": "Administration Building, Room 101",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -146,7 +145,6 @@ async def seed_data():
             "role": "Professor & HOD",
             "qualification": "PhD in Artificial Intelligence",
             "bio": "Research focus on machine learning and neural networks.",
-            "email": "s.johnson@campus.edu",
             "office": "Engineering Building, Room 301",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -156,7 +154,6 @@ async def seed_data():
             "role": "Associate Professor",
             "qualification": "MBA, CPA",
             "bio": "15 years experience in corporate finance and accounting.",
-            "email": "m.chen@campus.edu",
             "office": "Business Hall, Room 205",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -166,7 +163,6 @@ async def seed_data():
             "role": "Assistant Professor",
             "qualification": "PhD in Mechanical Engineering",
             "bio": "Specializes in renewable energy systems.",
-            "email": "e.rodriguez@campus.edu",
             "office": "Engineering Building, Room 115",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -176,7 +172,6 @@ async def seed_data():
             "role": "Professor",
             "qualification": "PhD in Literature",
             "bio": "Published author and poetry expert.",
-            "email": "d.williams@campus.edu",
             "office": "Liberal Arts Building, Room 402",
             "created_at": datetime.now(timezone.utc).isoformat()
         }

@@ -81,6 +81,12 @@ class DepartmentCreate(BaseModel):
     contact: str
     building: str
 
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    contact: Optional[str] = None
+    building: Optional[str] = None
+
 class Faculty(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

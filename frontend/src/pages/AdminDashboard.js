@@ -929,13 +929,40 @@ function LocationManager({ locations, fetchAllData }) {
 
 // Queries Viewer
 function QueriesViewer({ queries }) {
+  const [localQueries, setLocalQueries] = useState(queries);
+
+  useEffect(() => {
+    setLocalQueries(queries);
+  }, [queries]);
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/queries/${id}`, { withCredentials: true });
+      toast.success('Query deleted');
+      setLocalQueries(localQueries.filter(q => q.id !== id));
+    } catch (error) {
+      toast.error('Failed to delete query');
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6" data-testid="queries-viewer">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">User Queries ({queries.length})</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">User Queries ({localQueries.length})</h2>
       <div className="space-y-4">
-        {queries.map((query) => (
+        {localQueries.map((query) => (
           <div key={query.id} data-testid={`query-item-${query.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
-            <p className="text-sm text-gray-500 mb-2">{new Date(query.timestamp).toLocaleString()}</p>
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-sm text-gray-500">{new Date(query.timestamp).toLocaleString()}</p>
+              <Button 
+                onClick={() => handleDelete(query.id)} 
+                data-testid={`delete-query-${query.id}`} 
+                variant="ghost" 
+                size="sm" 
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
             <div className="mb-2">
               <span className="text-xs font-semibold text-blue-600">Query:</span>
               <p className="text-gray-900">{query.query}</p>
@@ -946,6 +973,9 @@ function QueriesViewer({ queries }) {
             </div>
           </div>
         ))}
+        {localQueries.length === 0 && (
+          <p className="text-gray-500 text-center py-8">No queries yet.</p>
+        )}
       </div>
     </div>
   );

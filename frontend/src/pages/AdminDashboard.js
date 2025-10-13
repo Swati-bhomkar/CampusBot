@@ -260,116 +260,206 @@ function FAQManager({ faqs, fetchAllData }) {
   );
 }
 
-// Department Manager
+// Department Manager (Secretary Committee)
 function DepartmentManager({ departments, fetchAllData }) {
-  const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', contact: '', building: '' });
-  const [editingItem, setEditingItem] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState('');
+  const [showInput, setShowInput] = useState(false);
+  const [formData, setFormData] = useState({ name: '', contact: '' });
+  
+  const secretaryPositions = [
+    'General Secretary',
+    'Academic Secretary',
+    'Alumni & E-cell Secretary',
+    'Technical & Innovation Secretary',
+    'Placement Secretary',
+    'Ladies Representative Secretary',
+    'Workshop & Seminar Secretary',
+    'Media Secretary',
+    'Event Secretary',
+    'Sports Secretary',
+    'Discipline Secretary',
+    'Movie & Activity Secretary'
+  ];
+
+  const handlePositionSelect = (position) => {
+    setSelectedPosition(position);
+    setShowInput(false);
+    setFormData({ name: '', contact: '' });
+  };
+
+  const handleAddClick = () => {
+    setShowInput(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.contact.trim()) return;
+
     try {
-      await axios.post(`${API}/departments`, formData, { withCredentials: true });
-      toast.success('Department created');
-      setOpen(false);
-      setFormData({ name: '', description: '', contact: '', building: '' });
+      await axios.post(`${API}/departments`, { 
+        position: selectedPosition, 
+        name: formData.name,
+        contact: formData.contact
+      }, { withCredentials: true });
+      toast.success('Secretary added successfully');
+      setFormData({ name: '', contact: '' });
+      setShowInput(false);
+      setSelectedPosition('');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to create department');
-    }
-  };
-
-  const handleEdit = (dept) => {
-    setEditingItem(dept);
-    setFormData({ name: dept.name, description: dept.description, contact: dept.contact, building: dept.building });
-    setEditOpen(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/departments/${editingItem.id}`, formData, { withCredentials: true });
-      toast.success('Department updated successfully');
-      setEditOpen(false);
-      setEditingItem(null);
-      setFormData({ name: '', description: '', contact: '', building: '' });
-      fetchAllData();
-    } catch (error) {
-      toast.error('Failed to update department');
+      toast.error('Failed to add secretary');
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API}/departments/${id}`, { withCredentials: true });
-      toast.success('Department deleted');
+      toast.success('Secretary deleted');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to delete department');
+      toast.error('Failed to delete secretary');
     }
   };
 
+  // Group by position
+  const secretariesByPosition = departments.reduce((acc, dept) => {
+    if (!acc[dept.position]) {
+      acc[dept.position] = [];
+    }
+    acc[dept.position].push(dept);
+    return acc;
+  }, {});
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6" data-testid="department-manager">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Student Committee ({departments.length})</h2>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="add-department-button" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full">
-              <Plus className="w-4 h-4 mr-2" /> Add Committee
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Committee</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4" data-testid="department-form">
-              <Input placeholder="Name" data-testid="dept-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Textarea placeholder="Description" data-testid="dept-description-input" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
-              <Input placeholder="Contact" data-testid="dept-contact-input" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
-              <Input placeholder="Building" data-testid="dept-building-input" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Button type="submit" data-testid="submit-department-button" className="w-full">Create Committee</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Secretary Committee</h2>
 
-        {/* Edit Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Committee</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <Input placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-              <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required rows={3} />
-              <Input placeholder="Contact" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
-              <Input placeholder="Building" value={formData.building} onChange={(e) => setFormData({...formData, building: e.target.value})} required />
-              <Button type="submit" className="w-full">Update Committee</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+      {/* Position Selection */}
+      <div className="mb-8 p-6 bg-gray-50 rounded-xl">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Secretary Position to Add</h3>
+        <div className="space-y-4">
+          {secretaryPositions.map((position) => (
+            <div key={position}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    id={position}
+                    name="position-selection"
+                    checked={selectedPosition === position}
+                    onChange={() => handlePositionSelect(position)}
+                    className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    data-testid={`position-radio-${position}`}
+                  />
+                  <label 
+                    htmlFor={position} 
+                    className="text-base font-medium text-gray-900 cursor-pointer"
+                  >
+                    {position}
+                  </label>
+                </div>
+                {selectedPosition === position && !showInput && (
+                  <Button
+                    onClick={handleAddClick}
+                    data-testid={`add-button-${position}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                )}
+              </div>
+
+              {/* Input form appears below selected position */}
+              {selectedPosition === position && showInput && (
+                <form onSubmit={handleSubmit} className="mt-3 ml-8 space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="Enter secretary name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    data-testid={`secretary-name-input-${position}`}
+                    autoFocus
+                    required
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Enter contact (email or phone)"
+                    value={formData.contact}
+                    onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                    data-testid={`secretary-contact-input-${position}`}
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit" 
+                      data-testid={`submit-secretary-${position}`}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Save
+                    </Button>
+                    <Button 
+                      type="button" 
+                      onClick={() => {
+                        setShowInput(false);
+                        setFormData({ name: '', contact: '' });
+                      }}
+                      variant="outline"
+                      data-testid={`cancel-secretary-${position}`}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {departments.map((dept) => (
-          <div key={dept.id} data-testid={`dept-item-${dept.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-gray-900">{dept.name}</h3>
-              <div className="flex gap-1">
-                <Button onClick={() => handleEdit(dept)} data-testid={`edit-dept-${dept.id}`} variant="ghost" size="sm" className="text-blue-600">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button onClick={() => handleDelete(dept.id)} data-testid={`delete-dept-${dept.id}`} variant="ghost" size="sm" className="text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+      {/* Display all secretaries grouped by position */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">All Secretaries ({departments.length})</h3>
+        <div className="space-y-6">
+          {secretaryPositions.map((position) => {
+            const positionSecretaries = secretariesByPosition[position] || [];
+            if (positionSecretaries.length === 0) return null;
+
+            return (
+              <div key={position} className="border border-gray-200 rounded-xl p-4 bg-gradient-to-br from-purple-50 to-pink-50">
+                <h4 className="font-semibold text-gray-900 mb-3 text-lg">{position}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {positionSecretaries.map((dept) => (
+                    <div 
+                      key={dept.id} 
+                      data-testid={`dept-item-${dept.id}`}
+                      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">{dept.name}</p>
+                          <p className="text-sm text-gray-600">{dept.contact}</p>
+                        </div>
+                        <Button 
+                          onClick={() => handleDelete(dept.id)} 
+                          data-testid={`delete-dept-${dept.id}`} 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <p className="text-gray-600 text-sm mb-2">{dept.description}</p>
-            <p className="text-xs text-gray-500">Contact: {dept.contact}</p>
-            <p className="text-xs text-gray-500">Building: {dept.building}</p>
-          </div>
-        ))}
+            );
+          })}
+          {departments.length === 0 && (
+            <p className="text-gray-500 text-center py-8">No secretaries added yet. Select a position above to add secretaries.</p>
+          )}
+        </div>
       </div>
     </div>
   );

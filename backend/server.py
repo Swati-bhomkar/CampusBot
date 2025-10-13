@@ -591,6 +591,14 @@ async def get_all_queries(request: Request):
             msg['timestamp'] = datetime.fromisoformat(msg['timestamp'])
     return history
 
+@api_router.delete("/admin/queries/{query_id}")
+async def delete_query(query_id: str, request: Request):
+    await require_admin(request)
+    result = await db.chat_history.delete_one({"id": query_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Query not found")
+    return {"message": "Query deleted successfully"}
+
 # Admin management
 @api_router.post("/admin/make-admin/{user_id}")
 async def make_admin(user_id: str, request: Request):

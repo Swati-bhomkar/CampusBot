@@ -222,11 +222,25 @@ async def seed_data():
         {
             "id": str(uuid.uuid4()),
             "floor": "2nd Floor",
+            "name": "Classroom 201",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "floor": "2nd Floor",
+            "name": "Library",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
             "floor": "3rd Floor",
+            "name": "Computer Lab A",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "floor": "4th Floor",
+            "name": "Principal Office",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
     ]

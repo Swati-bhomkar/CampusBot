@@ -234,14 +234,23 @@ async def seed_data():
         }
     ]
     
-    # Clear existing data
-    await db.faqs.delete_many({})
-    await db.departments.delete_many({})
-    await db.faculty.delete_many({})
-    await db.events.delete_many({})
-    await db.locations.delete_many({})
+    # Check if data already exists
+    existing_faqs = await db.faqs.count_documents({})
+    existing_depts = await db.departments.count_documents({})
+    existing_faculty = await db.faculty.count_documents({})
+    existing_events = await db.events.count_documents({})
+    existing_locations = await db.locations.count_documents({})
     
-    # Insert new data
+    if existing_faqs > 0 or existing_depts > 0 or existing_faculty > 0 or existing_events > 0 or existing_locations > 0:
+        print("\n⚠️  Database already contains data!")
+        print(f"   FAQs: {existing_faqs}, Secretaries: {existing_depts}, Faculty: {existing_faculty}")
+        print(f"   Events: {existing_events}, Locations: {existing_locations}")
+        print("\n   To prevent data loss, seed operation cancelled.")
+        print("   If you want to reset and reseed, manually delete the data first.")
+        client.close()
+        return
+    
+    # Insert new data (only runs if database is empty)
     await db.faqs.insert_many(faqs)
     await db.departments.insert_many(departments)
     await db.faculty.insert_many(faculty)

@@ -85,6 +85,7 @@ class Faculty(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
+    role: str  # Principal, HOD, Professor, Assistant Professor, etc.
     department: str
     bio: str
     email: str
@@ -93,6 +94,7 @@ class Faculty(BaseModel):
 
 class FacultyCreate(BaseModel):
     name: str
+    role: str
     department: str
     bio: str
     email: str

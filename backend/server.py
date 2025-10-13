@@ -86,7 +86,7 @@ class Faculty(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     role: str  # Principal, HOD, Professor, Assistant Professor, etc.
-    department: str
+    qualification: str
     bio: str
     email: str
     office: str
@@ -95,7 +95,7 @@ class Faculty(BaseModel):
 class FacultyCreate(BaseModel):
     name: str
     role: str
-    department: str
+    qualification: str
     bio: str
     email: str
     office: str

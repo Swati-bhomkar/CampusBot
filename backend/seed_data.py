@@ -249,9 +249,10 @@ async def seed_data():
     print(f"✓ Seeded {len(departments)} Departments")
     print(f"✓ Seeded {len(faculty)} Faculty members")
     print(f"✓ Seeded {len(events)} Events")
-    print(f"✓ Seeded {len(locations)} Locations")
+    print(f"✓ Seeded {len(locations)} Floor locations")
     print("\nSample data seeded successfully!")
     print("\nNote: Faculty includes Principal and teaching staff with roles")
+    print("Note: Locations now only track floor numbers")
     
     client.close()
 

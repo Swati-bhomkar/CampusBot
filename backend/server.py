@@ -138,22 +138,13 @@ class EventUpdate(BaseModel):
 class Location(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    building: str
-    description: str
     floor: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class LocationCreate(BaseModel):
-    name: str
-    building: str
-    description: str
     floor: str
 
 class LocationUpdate(BaseModel):
-    name: Optional[str] = None
-    building: Optional[str] = None
-    description: Optional[str] = None
     floor: Optional[str] = None
 
 class ChatMessage(BaseModel):

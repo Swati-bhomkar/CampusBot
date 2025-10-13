@@ -294,6 +294,7 @@ async def seed_data():
     print(f"✓ Seeded {len(events)} Events")
     print(f"✓ Seeded {len(locations)} Locations")
     print("\nSample data seeded successfully!")
+    print("\nNote: Faculty includes Principal and teaching staff with roles")
     
     client.close()
 

@@ -92,38 +92,27 @@ async def seed_data():
         }
     ]
     
-    # Sample Departments
+    # Sample Departments (Secretary Committee)
     departments = [
         {
             "id": str(uuid.uuid4()),
-            "name": "Computer Science",
-            "description": "Leading programs in software engineering, AI, cybersecurity, and data science",
-            "contact": "cs@campus.edu | (555) 123-4567",
-            "building": "Engineering Building, 3rd Floor",
+            "position": "General Secretary",
+            "name": "Rajesh Kumar",
+            "contact": "rajesh.k@college.edu",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
-            "name": "Business Administration",
-            "description": "Programs in management, finance, marketing, and entrepreneurship",
-            "contact": "business@campus.edu | (555) 234-5678",
-            "building": "Business Hall, 2nd Floor",
+            "position": "Event Secretary",
+            "name": "Priya Sharma",
+            "contact": "priya.s@college.edu",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": str(uuid.uuid4()),
-            "name": "Engineering",
-            "description": "Mechanical, electrical, civil, and chemical engineering programs",
-            "contact": "engineering@campus.edu | (555) 345-6789",
-            "building": "Engineering Building, 1st Floor",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Arts & Humanities",
-            "description": "Programs in literature, history, philosophy, and creative arts",
-            "contact": "arts@campus.edu | (555) 456-7890",
-            "building": "Liberal Arts Building, 4th Floor",
+            "position": "Sports Secretary",
+            "name": "Amit Patel",
+            "contact": "amit.p@college.edu",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
     ]

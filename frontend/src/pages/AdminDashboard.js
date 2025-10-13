@@ -320,7 +320,7 @@ function DepartmentManager({ departments, fetchAllData }) {
 // Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', role: '', qualification: '', bio: '', email: '', office: '' });
+  const [formData, setFormData] = useState({ name: '', role: '', qualification: '', bio: '', office: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -328,7 +328,7 @@ function FacultyManager({ faculty, fetchAllData }) {
       await axios.post(`${API}/faculty`, formData, { withCredentials: true });
       toast.success('Faculty created');
       setOpen(false);
-      setFormData({ name: '', role: '', qualification: '', bio: '', email: '', office: '' });
+      setFormData({ name: '', role: '', qualification: '', bio: '', office: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create faculty');
@@ -364,7 +364,6 @@ function FacultyManager({ faculty, fetchAllData }) {
               <Input placeholder="Role (e.g., Principal, Professor, Assistant Professor)" data-testid="faculty-role-input" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} required />
               <Input placeholder="Qualification (e.g., PhD, M.Tech, MBA)" data-testid="faculty-qualification-input" value={formData.qualification} onChange={(e) => setFormData({...formData, qualification: e.target.value})} required />
               <Textarea placeholder="Bio" data-testid="faculty-bio-input" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} required rows={3} />
-              <Input placeholder="Email" type="email" data-testid="faculty-email-input" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
               <Input placeholder="Office" data-testid="faculty-office-input" value={formData.office} onChange={(e) => setFormData({...formData, office: e.target.value})} required />
               <Button type="submit" data-testid="submit-faculty-button" className="w-full">Create Faculty</Button>
             </form>
@@ -425,7 +424,6 @@ function FacultyCard({ faculty, handleDelete, isPrincipal }) {
       </div>
       <p className="text-sm text-green-600 font-semibold mb-2">{faculty.qualification}</p>
       <p className="text-gray-600 text-sm mb-2">{faculty.bio}</p>
-      <p className="text-xs text-gray-500">Email: {faculty.email}</p>
       <p className="text-xs text-gray-500">Office: {faculty.office}</p>
     </div>
   );

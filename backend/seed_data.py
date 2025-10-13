@@ -135,7 +135,7 @@ async def seed_data():
             "name": "Dr. Sarah Johnson",
             "department": "Computer Science",
             "bio": "PhD in Artificial Intelligence. Research focus on machine learning and neural networks.",
-            "contact": "s.johnson@campus.edu",
+            "email": "s.johnson@campus.edu",
             "office": "Engineering Building, Room 301",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -144,7 +144,7 @@ async def seed_data():
             "name": "Prof. Michael Chen",
             "department": "Business Administration",
             "bio": "MBA, CPA. 15 years experience in corporate finance and accounting.",
-            "contact": "m.chen@campus.edu",
+            "email": "m.chen@campus.edu",
             "office": "Business Hall, Room 205",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -153,7 +153,7 @@ async def seed_data():
             "name": "Dr. Emily Rodriguez",
             "department": "Engineering",
             "bio": "PhD in Mechanical Engineering. Specializes in renewable energy systems.",
-            "contact": "e.rodriguez@campus.edu",
+            "email": "e.rodriguez@campus.edu",
             "office": "Engineering Building, Room 115",
             "created_at": datetime.now(timezone.utc).isoformat()
         },
@@ -162,7 +162,7 @@ async def seed_data():
             "name": "Prof. David Williams",
             "department": "Arts & Humanities",
             "bio": "PhD in Literature. Published author and poetry expert.",
-            "contact": "d.williams@campus.edu",
+            "email": "d.williams@campus.edu",
             "office": "Liberal Arts Building, Room 402",
             "created_at": datetime.now(timezone.utc).isoformat()
         }

@@ -26,11 +26,12 @@ function AdminDashboard({ user, setUser }) {
 
   const fetchAllData = async () => {
     try {
-      const [faqsRes, deptsRes, facultyRes, eventsRes, queriesRes] = await Promise.all([
+      const [faqsRes, deptsRes, facultyRes, eventsRes, locsRes, queriesRes] = await Promise.all([
         axios.get(`${API}/faqs`, { withCredentials: true }),
         axios.get(`${API}/departments`, { withCredentials: true }),
         axios.get(`${API}/faculty`, { withCredentials: true }),
         axios.get(`${API}/events`, { withCredentials: true }),
+        axios.get(`${API}/locations`, { withCredentials: true }),
         axios.get(`${API}/admin/all-queries`, { withCredentials: true })
       ]);
 
@@ -38,6 +39,7 @@ function AdminDashboard({ user, setUser }) {
       setDepartments(deptsRes.data);
       setFaculty(facultyRes.data);
       setEvents(eventsRes.data);
+      setLocations(locsRes.data);
       setQueries(queriesRes.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);

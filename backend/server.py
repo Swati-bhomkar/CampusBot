@@ -91,12 +91,12 @@ class Faculty(BaseModel):
     office: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class FacultyCreate(BaseModel):
-    name: str
-    role: str
-    qualification: str
-    bio: str
-    office: str
+class FacultyUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    qualification: Optional[str] = None
+    bio: Optional[str] = None
+    office: Optional[str] = None
 
 class Event(BaseModel):
     model_config = ConfigDict(extra="ignore")

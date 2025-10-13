@@ -320,7 +320,7 @@ function DepartmentManager({ departments, fetchAllData }) {
 // Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', role: '', department: '', bio: '', email: '', office: '' });
+  const [formData, setFormData] = useState({ name: '', role: '', qualification: '', bio: '', email: '', office: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -328,7 +328,7 @@ function FacultyManager({ faculty, fetchAllData }) {
       await axios.post(`${API}/faculty`, formData, { withCredentials: true });
       toast.success('Faculty created');
       setOpen(false);
-      setFormData({ name: '', role: '', department: '', bio: '', email: '', office: '' });
+      setFormData({ name: '', role: '', qualification: '', bio: '', email: '', office: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create faculty');
@@ -362,7 +362,7 @@ function FacultyManager({ faculty, fetchAllData }) {
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="faculty-form">
               <Input placeholder="Name" data-testid="faculty-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               <Input placeholder="Role (e.g., Principal, Professor, Assistant Professor)" data-testid="faculty-role-input" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} required />
-              <Input placeholder="Department" data-testid="faculty-dept-input" value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} required />
+              <Input placeholder="Qualification (e.g., PhD, M.Tech, MBA)" data-testid="faculty-qualification-input" value={formData.qualification} onChange={(e) => setFormData({...formData, qualification: e.target.value})} required />
               <Textarea placeholder="Bio" data-testid="faculty-bio-input" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} required rows={3} />
               <Input placeholder="Email" type="email" data-testid="faculty-email-input" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
               <Input placeholder="Office" data-testid="faculty-office-input" value={formData.office} onChange={(e) => setFormData({...formData, office: e.target.value})} required />
@@ -423,7 +423,7 @@ function FacultyCard({ faculty, handleDelete, isPrincipal }) {
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
-      <p className="text-sm text-blue-600 mb-2">{faculty.department}</p>
+      <p className="text-sm text-green-600 font-semibold mb-2">{faculty.qualification}</p>
       <p className="text-gray-600 text-sm mb-2">{faculty.bio}</p>
       <p className="text-xs text-gray-500">Email: {faculty.email}</p>
       <p className="text-xs text-gray-500">Office: {faculty.office}</p>

@@ -663,119 +663,174 @@ function EventManager({ events, fetchAllData }) {
 
 // Location Manager
 function LocationManager({ locations, fetchAllData }) {
-  const [selectedFloors, setSelectedFloors] = useState([]);
+  const [selectedFloor, setSelectedFloor] = useState('');
+  const [showInput, setShowInput] = useState(false);
+  const [locationName, setLocationName] = useState('');
   const availableFloors = ['2nd Floor', '3rd Floor', '4th Floor', '5th Floor'];
-  
-  // Get existing floors
-  const existingFloors = locations.map(loc => loc.floor);
 
-  const handleFloorToggle = (floor) => {
-    if (selectedFloors.includes(floor)) {
-      setSelectedFloors(selectedFloors.filter(f => f !== floor));
-    } else {
-      setSelectedFloors([...selectedFloors, floor]);
-    }
+  const handleFloorSelect = (floor) => {
+    setSelectedFloor(floor);
+    setShowInput(false);
+    setLocationName('');
   };
 
-  const handleAdd = async () => {
+  const handleAddClick = () => {
+    setShowInput(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!locationName.trim()) return;
+
     try {
-      // Add all selected floors
-      for (const floor of selectedFloors) {
-        await axios.post(`${API}/locations`, { floor }, { withCredentials: true });
-      }
-      toast.success('Floors added successfully');
-      setSelectedFloors([]);
+      await axios.post(`${API}/locations`, { 
+        floor: selectedFloor, 
+        name: locationName 
+      }, { withCredentials: true });
+      toast.success('Location added successfully');
+      setLocationName('');
+      setShowInput(false);
+      setSelectedFloor('');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to add floors');
+      toast.error('Failed to add location');
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API}/locations/${id}`, { withCredentials: true });
-      toast.success('Floor deleted');
+      toast.success('Location deleted');
       fetchAllData();
     } catch (error) {
-      toast.error('Failed to delete floor');
+      toast.error('Failed to delete location');
     }
   };
 
+  // Group locations by floor
+  const locationsByFloor = locations.reduce((acc, loc) => {
+    if (!acc[loc.floor]) {
+      acc[loc.floor] = [];
+    }
+    acc[loc.floor].push(loc);
+    return acc;
+  }, {});
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6" data-testid="location-manager">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Floors</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Locations</h2>
 
       {/* Floor Selection */}
       <div className="mb-8 p-6 bg-gray-50 rounded-xl">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Floors to Add</h3>
-        <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Floor to Add Location</h3>
+        <div className="space-y-4">
+          {availableFloors.map((floor) => (
+            <div key={floor}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    id={floor}
+                    name="floor-selection"
+                    checked={selectedFloor === floor}
+                    onChange={() => handleFloorSelect(floor)}
+                    className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    data-testid={`floor-radio-${floor}`}
+                  />
+                  <label 
+                    htmlFor={floor} 
+                    className="text-base font-medium text-gray-900 cursor-pointer"
+                  >
+                    {floor}
+                  </label>
+                </div>
+                {selectedFloor === floor && !showInput && (
+                  <Button
+                    onClick={handleAddClick}
+                    data-testid={`add-button-${floor}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                )}
+              </div>
+
+              {/* Input box appears below selected floor */}
+              {selectedFloor === floor && showInput && (
+                <form onSubmit={handleSubmit} className="mt-3 ml-8 flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder={`Enter location name (e.g., Classroom 201)`}
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                    data-testid={`location-input-${floor}`}
+                    className="flex-1"
+                    autoFocus
+                    required
+                  />
+                  <Button 
+                    type="submit" 
+                    data-testid={`submit-location-${floor}`}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Save
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={() => {
+                      setShowInput(false);
+                      setLocationName('');
+                    }}
+                    variant="outline"
+                    data-testid={`cancel-location-${floor}`}
+                  >
+                    Cancel
+                  </Button>
+                </form>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Existing Locations grouped by floor */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">All Locations ({locations.length})</h3>
+        <div className="space-y-6">
           {availableFloors.map((floor) => {
-            const isExisting = existingFloors.includes(floor);
-            const isSelected = selectedFloors.includes(floor);
-            
+            const floorLocations = locationsByFloor[floor] || [];
+            if (floorLocations.length === 0) return null;
+
             return (
-              <div key={floor} className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id={floor}
-                  checked={isSelected}
-                  onChange={() => handleFloorToggle(floor)}
-                  disabled={isExisting}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  data-testid={`floor-checkbox-${floor}`}
-                />
-                <label 
-                  htmlFor={floor} 
-                  className={`text-base font-medium ${isExisting ? 'text-gray-400 line-through' : 'text-gray-900 cursor-pointer'}`}
-                >
-                  {floor} {isExisting && '(Already added)'}
-                </label>
+              <div key={floor} className="border border-gray-200 rounded-xl p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <h4 className="font-semibold text-gray-900 mb-3 text-lg">{floor}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {floorLocations.map((loc) => (
+                    <div 
+                      key={loc.id} 
+                      data-testid={`location-item-${loc.id}`}
+                      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all flex justify-between items-center"
+                    >
+                      <span className="font-medium text-gray-900">{loc.name}</span>
+                      <Button 
+                        onClick={() => handleDelete(loc.id)} 
+                        data-testid={`delete-location-${loc.id}`} 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })}
-        </div>
-
-        {selectedFloors.length > 0 && (
-          <Button
-            onClick={handleAdd}
-            data-testid="add-floors-button"
-            className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-6"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Selected Floors ({selectedFloors.length})
-          </Button>
-        )}
-      </div>
-
-      {/* Existing Floors */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Floors ({locations.length})</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {locations.map((loc) => (
-            <div 
-              key={loc.id} 
-              data-testid={`location-item-${loc.id}`} 
-              className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-br from-blue-50 to-indigo-50"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">{loc.floor.charAt(0)}</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900">{loc.floor}</h3>
-                </div>
-                <Button 
-                  onClick={() => handleDelete(loc.id)} 
-                  data-testid={`delete-location-${loc.id}`} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
+          {locations.length === 0 && (
+            <p className="text-gray-500 text-center py-8">No locations added yet. Select a floor above to add locations.</p>
+          )}
         </div>
       </div>
     </div>

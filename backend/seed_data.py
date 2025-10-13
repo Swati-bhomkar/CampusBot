@@ -249,13 +249,13 @@ async def seed_data():
     await db.locations.insert_many(locations)
     
     print(f"✓ Seeded {len(faqs)} FAQs")
-    print(f"✓ Seeded {len(departments)} Departments")
+    print(f"✓ Seeded {len(departments)} Secretary positions")
     print(f"✓ Seeded {len(faculty)} Faculty members")
     print(f"✓ Seeded {len(events)} Events")
     print(f"✓ Seeded {len(locations)} Floor locations")
     print("\nSample data seeded successfully!")
     print("\nNote: Faculty includes Principal and teaching staff with roles")
-    print("Note: Locations now only track floor numbers")
+    print("Note: Secretary Committee includes various student secretary positions")
     
     client.close()
 

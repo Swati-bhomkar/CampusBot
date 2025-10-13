@@ -140,7 +140,7 @@ function AdminDashboard({ user, setUser }) {
 function FAQManager({ faqs, fetchAllData }) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [formData, setFormData] = useState({ question: '', answer: '', category: '', tags: '' });
+  const [formData, setFormData] = useState({ question: '', answer: '', category: '' });
   const [editingItem, setEditingItem] = useState(null);
 
   const handleSubmit = async (e) => {
@@ -148,11 +148,11 @@ function FAQManager({ faqs, fetchAllData }) {
     try {
       await axios.post(`${API}/faqs`, {
         ...formData,
-        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: []
       }, { withCredentials: true });
       toast.success('FAQ created successfully');
       setOpen(false);
-      setFormData({ question: '', answer: '', category: '', tags: '' });
+      setFormData({ question: '', answer: '', category: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create FAQ');
@@ -164,8 +164,7 @@ function FAQManager({ faqs, fetchAllData }) {
     setFormData({ 
       question: faq.question, 
       answer: faq.answer, 
-      category: faq.category, 
-      tags: faq.tags.join(', ') 
+      category: faq.category
     });
     setEditOpen(true);
   };
@@ -175,12 +174,12 @@ function FAQManager({ faqs, fetchAllData }) {
     try {
       await axios.put(`${API}/faqs/${editingItem.id}`, {
         ...formData,
-        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: editingItem.tags || []
       }, { withCredentials: true });
       toast.success('FAQ updated successfully');
       setEditOpen(false);
       setEditingItem(null);
-      setFormData({ question: '', answer: '', category: '', tags: '' });
+      setFormData({ question: '', answer: '', category: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to update FAQ');
@@ -215,7 +214,6 @@ function FAQManager({ faqs, fetchAllData }) {
               <Input placeholder="Question" data-testid="faq-question-input" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} required />
               <Textarea placeholder="Answer" data-testid="faq-answer-input" value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} required rows={4} />
               <Input placeholder="Category (e.g., Admissions, Courses)" data-testid="faq-category-input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required />
-              <Input placeholder="Tags (comma-separated)" data-testid="faq-tags-input" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
               <Button type="submit" data-testid="submit-faq-button" className="w-full">Create FAQ</Button>
             </form>
           </DialogContent>
@@ -231,7 +229,6 @@ function FAQManager({ faqs, fetchAllData }) {
               <Input placeholder="Question" data-testid="faq-edit-question-input" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} required />
               <Textarea placeholder="Answer" data-testid="faq-edit-answer-input" value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} required rows={4} />
               <Input placeholder="Category" data-testid="faq-edit-category-input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required />
-              <Input placeholder="Tags (comma-separated)" data-testid="faq-edit-tags-input" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
               <Button type="submit" data-testid="update-faq-button" className="w-full">Update FAQ</Button>
             </form>
           </DialogContent>
@@ -255,9 +252,6 @@ function FAQManager({ faqs, fetchAllData }) {
             <p className="text-gray-600 text-sm mb-2">{faq.answer}</p>
             <div className="flex gap-2 flex-wrap">
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{faq.category}</span>
-              {faq.tags.map((tag, i) => (
-                <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{tag}</span>
-              ))}
             </div>
           </div>
         ))}

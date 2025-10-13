@@ -531,7 +531,7 @@ async def chat_query(query_data: ChatQuery, request: Request):
     if departments:
         context += "\nDepartments:\n"
         for dept in departments:
-            context += f"- {dept['name']}: {dept['description']} (Contact: {dept['contact']}, Building: {dept['building']})\n"
+            context += f"- {dept['position']}: {dept['name']} (Contact: {dept['contact']})\n"
     
     if faculty:
         context += "\nFaculty:\n"

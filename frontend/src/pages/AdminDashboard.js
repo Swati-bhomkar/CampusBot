@@ -100,7 +100,7 @@ function AdminDashboard({ user, setUser }) {
         <Tabs defaultValue="faqs" className="w-full">
           <TabsList className="grid w-full grid-cols-6 mb-8 bg-white rounded-xl p-2 shadow-lg">
             <TabsTrigger value="faqs" data-testid="tab-faqs">FAQs</TabsTrigger>
-            <TabsTrigger value="departments" data-testid="tab-departments">Student Committee</TabsTrigger>
+            <TabsTrigger value="departments" data-testid="tab-departments">Secretary Committee</TabsTrigger>
             <TabsTrigger value="faculty" data-testid="tab-faculty">Faculty</TabsTrigger>
             <TabsTrigger value="events" data-testid="tab-events">Events</TabsTrigger>
             <TabsTrigger value="locations" data-testid="tab-locations">Locations</TabsTrigger>

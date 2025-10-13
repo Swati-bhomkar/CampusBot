@@ -17,6 +17,7 @@ function AdminDashboard({ user, setUser }) {
   const [departments, setDepartments] = useState([]);
   const [faculty, setFaculty] = useState([]);
   const [events, setEvents] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [queries, setQueries] = useState([]);
 
   useEffect(() => {

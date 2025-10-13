@@ -88,7 +88,6 @@ class Faculty(BaseModel):
     role: str  # Principal, HOD, Professor, Assistant Professor, etc.
     qualification: str
     bio: str
-    email: str
     office: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -97,7 +96,6 @@ class FacultyCreate(BaseModel):
     role: str
     qualification: str
     bio: str
-    email: str
     office: str
 
 class Event(BaseModel):

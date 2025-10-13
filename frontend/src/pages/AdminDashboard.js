@@ -320,7 +320,7 @@ function DepartmentManager({ departments, fetchAllData }) {
 // Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', department: '', bio: '', contact: '', office: '' });
+  const [formData, setFormData] = useState({ name: '', department: '', bio: '', email: '', office: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -328,7 +328,7 @@ function FacultyManager({ faculty, fetchAllData }) {
       await axios.post(`${API}/faculty`, formData, { withCredentials: true });
       toast.success('Faculty created');
       setOpen(false);
-      setFormData({ name: '', department: '', bio: '', contact: '', office: '' });
+      setFormData({ name: '', department: '', bio: '', email: '', office: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create faculty');
@@ -363,7 +363,7 @@ function FacultyManager({ faculty, fetchAllData }) {
               <Input placeholder="Name" data-testid="faculty-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
               <Input placeholder="Department" data-testid="faculty-dept-input" value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} required />
               <Textarea placeholder="Bio" data-testid="faculty-bio-input" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} required rows={3} />
-              <Input placeholder="Contact" data-testid="faculty-contact-input" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} required />
+              <Input placeholder="Email" type="email" data-testid="faculty-email-input" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
               <Input placeholder="Office" data-testid="faculty-office-input" value={formData.office} onChange={(e) => setFormData({...formData, office: e.target.value})} required />
               <Button type="submit" data-testid="submit-faculty-button" className="w-full">Create Faculty</Button>
             </form>
@@ -382,7 +382,7 @@ function FacultyManager({ faculty, fetchAllData }) {
             </div>
             <p className="text-sm text-blue-600 mb-2">{f.department}</p>
             <p className="text-gray-600 text-sm mb-2">{f.bio}</p>
-            <p className="text-xs text-gray-500">Contact: {f.contact}</p>
+            <p className="text-xs text-gray-500">Email: {f.email}</p>
             <p className="text-xs text-gray-500">Office: {f.office}</p>
           </div>
         ))}

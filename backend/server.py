@@ -332,6 +332,20 @@ async def get_faculty():
     for f in faculty:
         if isinstance(f.get('created_at'), str):
             f['created_at'] = datetime.fromisoformat(f['created_at'])
+    
+    # Sort faculty: Principal/Coordinator first, then others
+    def sort_key(f):
+        role = f.get('role', '').lower()
+        if 'principal' in role or 'coordinator' in role:
+            return 0
+        elif 'hod' in role or 'head' in role:
+            return 1
+        elif 'professor' in role:
+            return 2
+        else:
+            return 3
+    
+    faculty.sort(key=sort_key)
     return faculty
 
 @api_router.post("/faculty", response_model=Faculty)

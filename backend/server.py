@@ -150,6 +150,12 @@ class LocationCreate(BaseModel):
     description: str
     floor: str
 
+class LocationUpdate(BaseModel):
+    name: Optional[str] = None
+    building: Optional[str] = None
+    description: Optional[str] = None
+    floor: Optional[str] = None
+
 class ChatMessage(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

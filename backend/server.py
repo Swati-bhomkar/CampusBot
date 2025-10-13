@@ -91,6 +91,13 @@ class Faculty(BaseModel):
     office: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class FacultyCreate(BaseModel):
+    name: str
+    role: str
+    qualification: str
+    bio: str
+    office: str
+
 class FacultyUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None

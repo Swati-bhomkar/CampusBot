@@ -546,7 +546,7 @@ async def chat_query(query_data: ChatQuery, request: Request):
     if locations:
         context += "\nCampus Locations:\n"
         for loc in locations[:15]:
-            context += f"- {loc['name']} ({loc['building']}): {loc['description']} (Floor: {loc['floor']})\n"
+            context += f"- Floor: {loc['floor']}\n"
     
     # Use Claude Sonnet 4 via emergentintegrations
     session_id = query_data.session_id or str(uuid.uuid4())

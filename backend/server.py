@@ -490,6 +490,25 @@ async def create_location(location_data: LocationCreate, request: Request):
     await db.locations.insert_one(doc)
     return location
 
+@api_router.put("/locations/{location_id}", response_model=Location)
+async def update_location(location_id: str, location_update: LocationUpdate, request: Request):
+    await require_admin(request)
+    existing_location = await db.locations.find_one({"id": location_id}, {"_id": 0})
+    if not existing_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    update_data = {k: v for k, v in location_update.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.locations.update_one({"id": location_id}, {"$set": update_data})
+    
+    updated_location = await db.locations.find_one({"id": location_id}, {"_id": 0})
+    
+    if isinstance(updated_location['created_at'], str):
+        updated_location['created_at'] = datetime.fromisoformat(updated_location['created_at'])
+    
+    return Location(**updated_location)
+
 @api_router.delete("/locations/{location_id}")
 async def delete_location(location_id: str, request: Request):
     await require_admin(request)

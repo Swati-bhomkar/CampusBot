@@ -341,6 +341,25 @@ async def create_department(dept_data: DepartmentCreate, request: Request):
     await db.departments.insert_one(doc)
     return department
 
+@api_router.put("/departments/{dept_id}", response_model=Department)
+async def update_department(dept_id: str, dept_update: DepartmentUpdate, request: Request):
+    await require_admin(request)
+    existing_dept = await db.departments.find_one({"id": dept_id}, {"_id": 0})
+    if not existing_dept:
+        raise HTTPException(status_code=404, detail="Department not found")
+    
+    update_data = {k: v for k, v in dept_update.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.departments.update_one({"id": dept_id}, {"$set": update_data})
+    
+    updated_dept = await db.departments.find_one({"id": dept_id}, {"_id": 0})
+    
+    if isinstance(updated_dept['created_at'], str):
+        updated_dept['created_at'] = datetime.fromisoformat(updated_dept['created_at'])
+    
+    return Department(**updated_dept)
+
 @api_router.delete("/departments/{dept_id}")
 async def delete_department(dept_id: str, request: Request):
     await require_admin(request)

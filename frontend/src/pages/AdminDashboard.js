@@ -320,7 +320,7 @@ function DepartmentManager({ departments, fetchAllData }) {
 // Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', department: '', bio: '', email: '', office: '' });
+  const [formData, setFormData] = useState({ name: '', role: '', department: '', bio: '', email: '', office: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -328,7 +328,7 @@ function FacultyManager({ faculty, fetchAllData }) {
       await axios.post(`${API}/faculty`, formData, { withCredentials: true });
       toast.success('Faculty created');
       setOpen(false);
-      setFormData({ name: '', department: '', bio: '', email: '', office: '' });
+      setFormData({ name: '', role: '', department: '', bio: '', email: '', office: '' });
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create faculty');
@@ -361,6 +361,7 @@ function FacultyManager({ faculty, fetchAllData }) {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="faculty-form">
               <Input placeholder="Name" data-testid="faculty-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              <Input placeholder="Role (e.g., Principal, Professor, Assistant Professor)" data-testid="faculty-role-input" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} required />
               <Input placeholder="Department" data-testid="faculty-dept-input" value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} required />
               <Textarea placeholder="Bio" data-testid="faculty-bio-input" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} required rows={3} />
               <Input placeholder="Email" type="email" data-testid="faculty-email-input" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
@@ -371,22 +372,61 @@ function FacultyManager({ faculty, fetchAllData }) {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {faculty.map((f) => (
-          <div key={f.id} data-testid={`faculty-item-${f.id}`} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-gray-900">{f.name}</h3>
-              <Button onClick={() => handleDelete(f.id)} data-testid={`delete-faculty-${f.id}`} variant="ghost" size="sm" className="text-red-600">
-                <Trash2 className="w-4 h-4" />
-              </Button>
+      <div className="space-y-6">
+        {/* Principal/Coordinator Section */}
+        {faculty.filter(f => f.role && (f.role.toLowerCase().includes('principal') || f.role.toLowerCase().includes('coordinator'))).length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-purple-700 mb-4 pb-2 border-b-2 border-purple-200">Principal / Coordinator</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {faculty.filter(f => f.role && (f.role.toLowerCase().includes('principal') || f.role.toLowerCase().includes('coordinator'))).map((f) => (
+                <FacultyCard key={f.id} faculty={f} handleDelete={handleDelete} isPrincipal={true} />
+              ))}
             </div>
-            <p className="text-sm text-blue-600 mb-2">{f.department}</p>
-            <p className="text-gray-600 text-sm mb-2">{f.bio}</p>
-            <p className="text-xs text-gray-500">Email: {f.email}</p>
-            <p className="text-xs text-gray-500">Office: {f.office}</p>
           </div>
-        ))}
+        )}
+
+        {/* Teaching Staff Section */}
+        <div>
+          <h3 className="text-xl font-bold text-blue-700 mb-4 pb-2 border-b-2 border-blue-200">Teaching Staff</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {faculty.filter(f => !f.role || (!f.role.toLowerCase().includes('principal') && !f.role.toLowerCase().includes('coordinator'))).map((f) => (
+              <FacultyCard key={f.id} faculty={f} handleDelete={handleDelete} isPrincipal={false} />
+            ))}
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// Faculty Card Component
+function FacultyCard({ faculty, handleDelete, isPrincipal }) {
+  return (
+    <div 
+      data-testid={`faculty-item-${faculty.id}`} 
+      className={`border rounded-xl p-4 hover:shadow-md transition-all ${isPrincipal ? 'border-purple-300 bg-purple-50' : 'border-gray-200'}`}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900">{faculty.name}</h3>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full inline-block mt-1 ${isPrincipal ? 'bg-purple-200 text-purple-800' : 'bg-blue-100 text-blue-700'}`}>
+            {faculty.role}
+          </span>
+        </div>
+        <Button 
+          onClick={() => handleDelete(faculty.id)} 
+          data-testid={`delete-faculty-${faculty.id}`} 
+          variant="ghost" 
+          size="sm" 
+          className="text-red-600"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+      <p className="text-sm text-blue-600 mb-2">{faculty.department}</p>
+      <p className="text-gray-600 text-sm mb-2">{faculty.bio}</p>
+      <p className="text-xs text-gray-500">Email: {faculty.email}</p>
+      <p className="text-xs text-gray-500">Office: {faculty.office}</p>
     </div>
   );
 }

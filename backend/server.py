@@ -87,7 +87,7 @@ class Faculty(BaseModel):
     name: str
     department: str
     bio: str
-    contact: str
+    email: str
     office: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -95,7 +95,7 @@ class FacultyCreate(BaseModel):
     name: str
     department: str
     bio: str
-    contact: str
+    email: str
     office: str
 
 class Event(BaseModel):

@@ -69,23 +69,20 @@ class FAQUpdate(BaseModel):
 class Department(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    position: str
     name: str
-    description: str
     contact: str
-    building: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DepartmentCreate(BaseModel):
+    position: str
     name: str
-    description: str
     contact: str
-    building: str
 
 class DepartmentUpdate(BaseModel):
+    position: Optional[str] = None
     name: Optional[str] = None
-    description: Optional[str] = None
     contact: Optional[str] = None
-    building: Optional[str] = None
 
 class Faculty(BaseModel):
     model_config = ConfigDict(extra="ignore")

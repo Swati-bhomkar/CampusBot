@@ -1,51 +1,97 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import LandingPage from "./pages/LandingPage";
+import ChatPage from "./pages/ChatPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import { Toaster } from "./components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+// Auth wrapper to handle session_id
+function AuthWrapper({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    const processAuth = async () => {
+      // Check for session_id in URL fragment
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      const sessionId = params.get('session_id');
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+      if (sessionId) {
+        try {
+          const response = await axios.post(`${API}/auth/session`, {}, {
+            headers: { 'X-Session-ID': sessionId },
+            withCredentials: true
+          });
+          setUser(response.data.user);
+          // Clean URL and navigate to chat
+          window.history.replaceState({}, document.title, window.location.pathname);
+          navigate('/chat');
+        } catch (error) {
+          console.error('Failed to process session:', error);
+          setLoading(false);
+        }
+      } else {
+        // Check existing session
+        try {
+          const response = await axios.get(`${API}/auth/user`, {
+            withCredentials: true
+          });
+          setUser(response.data);
+        } catch (error) {
+          // Not authenticated
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    };
+
+    processAuth();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return children({ user, setUser });
+}
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={
+            <AuthWrapper>
+              {({ user }) => user ? <Navigate to="/chat" /> : <LandingPage />}
+            </AuthWrapper>
+          } />
+          <Route path="/chat" element={
+            <AuthWrapper>
+              {({ user, setUser }) => user ? <ChatPage user={user} setUser={setUser} /> : <Navigate to="/" />}
+            </AuthWrapper>
+          } />
+          <Route path="/admin" element={
+            <AuthWrapper>
+              {({ user, setUser }) => user?.is_admin ? <AdminDashboard user={user} setUser={setUser} /> : <Navigate to="/" />}
+            </AuthWrapper>
+          } />
         </Routes>
+        <Toaster position="top-right" />
       </BrowserRouter>
     </div>
   );

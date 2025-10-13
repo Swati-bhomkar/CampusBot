@@ -320,7 +320,9 @@ function DepartmentManager({ departments, fetchAllData }) {
 // Faculty Manager
 function FacultyManager({ faculty, fetchAllData }) {
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', role: '', qualification: '', bio: '', office: '' });
+  const [editingFaculty, setEditingFaculty] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -332,6 +334,32 @@ function FacultyManager({ faculty, fetchAllData }) {
       fetchAllData();
     } catch (error) {
       toast.error('Failed to create faculty');
+    }
+  };
+
+  const handleEdit = (faculty) => {
+    setEditingFaculty(faculty);
+    setFormData({
+      name: faculty.name,
+      role: faculty.role,
+      qualification: faculty.qualification,
+      bio: faculty.bio,
+      office: faculty.office
+    });
+    setEditOpen(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API}/faculty/${editingFaculty.id}`, formData, { withCredentials: true });
+      toast.success('Faculty updated successfully');
+      setEditOpen(false);
+      setEditingFaculty(null);
+      setFormData({ name: '', role: '', qualification: '', bio: '', office: '' });
+      fetchAllData();
+    } catch (error) {
+      toast.error('Failed to update faculty');
     }
   };
 
@@ -369,6 +397,23 @@ function FacultyManager({ faculty, fetchAllData }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Faculty</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdate} className="space-y-4" data-testid="faculty-edit-form">
+              <Input placeholder="Name" data-testid="faculty-edit-name-input" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              <Input placeholder="Role (e.g., Principal, Professor, Assistant Professor)" data-testid="faculty-edit-role-input" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} required />
+              <Input placeholder="Qualification (e.g., PhD, M.Tech, MBA)" data-testid="faculty-edit-qualification-input" value={formData.qualification} onChange={(e) => setFormData({...formData, qualification: e.target.value})} required />
+              <Textarea placeholder="Bio" data-testid="faculty-edit-bio-input" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} required rows={3} />
+              <Input placeholder="Office" data-testid="faculty-edit-office-input" value={formData.office} onChange={(e) => setFormData({...formData, office: e.target.value})} required />
+              <Button type="submit" data-testid="update-faculty-button" className="w-full">Update Faculty</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="space-y-6">
@@ -378,7 +423,7 @@ function FacultyManager({ faculty, fetchAllData }) {
             <h3 className="text-xl font-bold text-purple-700 mb-4 pb-2 border-b-2 border-purple-200">Principal / Coordinator</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {faculty.filter(f => f.role && (f.role.toLowerCase().includes('principal') || f.role.toLowerCase().includes('coordinator'))).map((f) => (
-                <FacultyCard key={f.id} faculty={f} handleDelete={handleDelete} isPrincipal={true} />
+                <FacultyCard key={f.id} faculty={f} handleEdit={handleEdit} handleDelete={handleDelete} isPrincipal={true} />
               ))}
             </div>
           </div>
@@ -389,7 +434,7 @@ function FacultyManager({ faculty, fetchAllData }) {
           <h3 className="text-xl font-bold text-blue-700 mb-4 pb-2 border-b-2 border-blue-200">Teaching Staff</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {faculty.filter(f => !f.role || (!f.role.toLowerCase().includes('principal') && !f.role.toLowerCase().includes('coordinator'))).map((f) => (
-              <FacultyCard key={f.id} faculty={f} handleDelete={handleDelete} isPrincipal={false} />
+              <FacultyCard key={f.id} faculty={f} handleEdit={handleEdit} handleDelete={handleDelete} isPrincipal={false} />
             ))}
           </div>
         </div>
@@ -399,7 +444,7 @@ function FacultyManager({ faculty, fetchAllData }) {
 }
 
 // Faculty Card Component
-function FacultyCard({ faculty, handleDelete, isPrincipal }) {
+function FacultyCard({ faculty, handleEdit, handleDelete, isPrincipal }) {
   return (
     <div 
       data-testid={`faculty-item-${faculty.id}`} 
@@ -412,15 +457,28 @@ function FacultyCard({ faculty, handleDelete, isPrincipal }) {
             {faculty.role}
           </span>
         </div>
-        <Button 
-          onClick={() => handleDelete(faculty.id)} 
-          data-testid={`delete-faculty-${faculty.id}`} 
-          variant="ghost" 
-          size="sm" 
-          className="text-red-600"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button 
+            onClick={() => handleEdit(faculty)} 
+            data-testid={`edit-faculty-${faculty.id}`} 
+            variant="ghost" 
+            size="sm" 
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+            </svg>
+          </Button>
+          <Button 
+            onClick={() => handleDelete(faculty.id)} 
+            data-testid={`delete-faculty-${faculty.id}`} 
+            variant="ghost" 
+            size="sm" 
+            className="text-red-600 hover:text-red-700"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
       <p className="text-sm text-green-600 font-semibold mb-2">{faculty.qualification}</p>
       <p className="text-gray-600 text-sm mb-2">{faculty.bio}</p>

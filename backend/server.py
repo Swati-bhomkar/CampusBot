@@ -549,16 +549,16 @@ async def chat_query(query_data: ChatQuery, request: Request):
             context += f"- {loc['name']} (Floor: {loc['floor']})\n"
     
     # Use Claude Sonnet 4 via emergentintegrations
+    
     session_id = query_data.session_id or str(uuid.uuid4())
-    
-    chat = LlmChat(
-        api_key=os.environ['EMERGENT_LLM_KEY'],
-        session_id=session_id,
-        system_message=context
-    ).with_model("anthropic", "claude-3-7-sonnet-20250219")
-    
-    user_message = UserMessage(text=query_data.query)
-    response_text = await chat.send_message(user_message)
+    response_text = (
+        "I'm currently not connected to the AI model, "
+        "but I can still help you with information stored in the system.\n\n"
+        "Your question was:\n"
+        f"\"{query_data.query}\"\n\n"
+        "Here is some campus information I know:\n\n"
+        f"{context[:1500]}"
+    )
     
     # Save chat history
     if user:

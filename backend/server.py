@@ -610,10 +610,20 @@ async def make_admin(user_id: str, request: Request):
 # Include the router in the main app
 app.include_router(api_router)
 
+raw = os.environ.get("CORS_ORIGINS", "")
+origins = [o.strip() for o in raw.split(",") if o.strip()]
+
+if not origins:
+    # Fail fast so you don't accidentally run with wildcard and credentials
+    raise RuntimeError(
+        "CORS_ORIGINS env var is empty. Set it to your frontend origin(s), "
+        "e.g. https://campusbot-frontend.netlify.app"
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=origins,       # exact allowed origins only
+    allow_credentials=True,      # keep this True if you use cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )

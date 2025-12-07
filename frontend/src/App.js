@@ -18,43 +18,46 @@ function AuthWrapper({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const processAuth = async () => {
-      // Check for session_id in URL fragment
-      const hash = window.location.hash;
-      const params = new URLSearchParams(hash.substring(1));
-      const sessionId = params.get('session_id');
+  const processAuth = async () => {
+    // Check both hash and query param for session_id
+    let sessionId = null;
+    // 1. Query param
+    const qSession = new URLSearchParams(window.location.search).get('session_id');
+    // 2. Hash param
+    const hash = window.location.hash;
+    const hSession = new URLSearchParams(hash.substring(1)).get('session_id');
+    sessionId = qSession || hSession;
 
-      if (sessionId) {
-        try {
-          const response = await axios.post(`${API}/auth/session`, {}, {
-            headers: { 'X-Session-ID': sessionId },
-            withCredentials: true
-          });
-          setUser(response.data.user);
-          // Clean URL and navigate to chat
-          window.history.replaceState({}, document.title, window.location.pathname);
-          navigate('/chat');
-        } catch (error) {
-          console.error('Failed to process session:', error);
-          setLoading(false);
-        }
-      } else {
-        // Check existing session
-        try {
-          const response = await axios.get(`${API}/auth/user`, {
-            withCredentials: true
-          });
-          setUser(response.data);
-        } catch (error) {
-          // Not authenticated
-          setUser(null);
-        }
+    if (sessionId) {
+      try {
+        const response = await axios.post(`${API}/auth/session`, {}, {
+          headers: { 'X-Session-ID': sessionId },
+          withCredentials: true
+        });
+        setUser(response.data.user);
+        // Clean URL and navigate to chat
+        window.history.replaceState({}, document.title, window.location.pathname);
+        navigate('/chat');
+      } catch (error) {
+        console.error('Failed to process session:', error);
         setLoading(false);
       }
-    };
-
-    processAuth();
-  }, [navigate]);
+    } else {
+      // Check existing session
+      try {
+        const response = await axios.get(`${API}/auth/user`, {
+          withCredentials: true
+        });
+        setUser(response.data);
+      } catch (error) {
+        // Not authenticated
+        setUser(null);
+      }
+      setLoading(false);
+    }
+  };
+  processAuth();
+}, [navigate]);
 
   if (loading) {
     return (

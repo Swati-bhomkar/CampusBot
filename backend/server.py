@@ -519,60 +519,146 @@ async def chat_query(query_data: ChatQuery, request: Request):
     events = await db.events.find({}, {"_id": 0}).to_list(100)
     locations = await db.locations.find({}, {"_id": 0}).to_list(100)
     
-    # Build context for the chatbot
+    # Build context if you still want it for debugging or later AI use (not returned directly)
     context = "You are a helpful campus assistant. Use the following campus information to answer the student's question:\n\n"
     
     if faqs:
         context += "FAQs:\n"
         for faq in faqs[:20]:
-            context += f"Q: {faq['question']}\nA: {faq['answer']}\n\n"
+            context += f"Q: {faq.get('question','')}\nA: {faq.get('answer','')}\n\n"
     
     if departments:
         context += "\nDepartments:\n"
         for dept in departments:
-            context += f"- {dept['position']}: {dept['name']} (Contact: {dept['contact']})\n"
+            context += f"- {dept.get('position','')}: {dept.get('name','')} (Contact: {dept.get('contact','')})\n"
     
     if faculty:
         context += "\nFaculty:\n"
         for f in faculty[:10]:
-            context += f"- {f['name']} - {f['role']} (Qualification: {f['qualification']}): {f['bio']} (Office: {f['office']})\n"
+            context += f"- {f.get('name','')} - {f.get('role','')} (Qualification: {f.get('qualification','')}): {f.get('bio','')} (Office: {f.get('office','')})\n"
     
     if events:
         context += "\nUpcoming Events:\n"
         for event in events[:10]:
-            context += f"- {event['title']}: {event['description']} (Date: {event['date']}, Location: {event['location']})\n"
+            context += f"- {event.get('title','')}: {event.get('description','')} (Date: {event.get('date','')}, Location: {event.get('location','')})\n"
     
     if locations:
         context += "\nCampus Locations:\n"
         for loc in locations[:15]:
-            context += f"- {loc['name']} (Floor: {loc['floor']})\n"
+            context += f"- {loc.get('name','')} (Floor: {loc.get('floor','')})\n"
     
-    # Use Claude Sonnet 4 via emergentintegrations
-    
+    # --- Begin Option A relevance-based fallback (prevents returning whole DB) ---
     session_id = query_data.session_id or str(uuid.uuid4())
-    response_text = (
-        "I'm currently not connected to the AI model, "
-        "but I can still help you with information stored in the system.\n\n"
-        "Your question was:\n"
-        f"\"{query_data.query}\"\n\n"
-        "Here is some campus information I know:\n\n"
-        f"{context[:1500]}"
-    )
-    
-    # Save chat history
-    if user:
-        chat_record = {
-            "id": str(uuid.uuid4()),
-            "user_id": user.id,
-            "query": query_data.query,
-            "response": response_text,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        await db.chat_history.insert_one(chat_record)
-    
-    return ChatResponse(response=response_text, session_id=session_id)
+    question = (query_data.query or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Empty query")
 
-@api_router.get("/chat/history", response_model=List[ChatMessage])
+    # Simple token overlap scoring helper
+    def score_text(target, q):
+        import re
+        def toks(s):
+            if not s:
+                return set()
+            s2 = re.sub(r"[^\w\s]", " ", str(s).lower())
+            return set([t for t in s2.split() if t])
+        tq = toks(q)
+        tt = toks(target)
+        if not tq or not tt:
+            return 0.0
+        overlap = len(tq & tt)
+        # normalize by query token count so short queries don't over-penalize
+        return overlap / max(len(tq), 1)
+
+    # Collect candidates
+    candidates = []
+
+    for faq in faqs:
+        q_text = f"{faq.get('question','')} {faq.get('answer','')}"
+        candidates.append({
+            "type": "faq",
+            "title": faq.get("question") or "FAQ",
+            "content": faq.get("answer") or "",
+            "score": score_text(q_text, question)
+        })
+
+    for d in departments:
+        title = d.get("name") or d.get("title") or ""
+        content = d.get("description") or ""
+        candidates.append({
+            "type": "department",
+            "title": title,
+            "content": content,
+            "score": score_text(f"{title} {content}", question)
+        })
+
+    for f in faculty:
+        name = f.get("name") or f.get("title") or ""
+        bio = f.get("bio") or f.get("designation") or ""
+        candidates.append({
+            "type": "faculty",
+            "title": name,
+            "content": bio,
+            "score": score_text(f"{name} {bio}", question)
+        })
+
+    for e in events:
+        title = e.get("title") or ""
+        desc = e.get("description") or ""
+        candidates.append({
+            "type": "event",
+            "title": title,
+            "content": desc,
+            "score": score_text(f"{title} {desc}", question)
+        })
+
+    for loc in locations:
+        name = loc.get("name") or ""
+        floor = loc.get("floor") or loc.get("floor_number") or ""
+        loc_content = f"Floor: {floor}" if floor else ""
+        candidates.append({
+            "type": "location",
+            "title": name,
+            "content": loc_content,
+            "score": score_text(f"{name} {loc_content}", question)
+        })
+
+    # Sort and pick top matches (tune threshold if needed)
+    cands_sorted = sorted(candidates, key=lambda x: x.get("score", 0.0), reverse=True)
+    top = [c for c in cands_sorted if c.get("score", 0.0) > 0.0][:5]  # threshold >0.0 for immediate matches
+
+    if not top:
+        response_text = (
+            "Sorry — I couldn't find a direct match in the campus information I have. "
+            "Try asking about FAQs, events, faculty or specific campus locations."
+        )
+    else:
+        lines = []
+        for c in top[:3]:
+            title = c.get("title") or c.get("type").capitalize()
+            content = c.get("content") or "No further details available."
+            # Shorten overly long content to keep responses concise
+            snippet = content if len(content) <= 1200 else content[:1200] + "..."
+            lines.append(f"{c['type'].upper()}: {title}\n{snippet.strip()}")
+        response_text = "I found the following related information:\n\n" + "\n\n---\n\n".join(lines)
+
+    # Save chat history if user present (do not fail the response if insert fails)
+    try:
+        if user:
+            chat_record = {
+                "id": str(uuid.uuid4()),
+                "user_id": user.id,
+                "query": query_data.query,
+                "response": response_text,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            await db.chat_history.insert_one(chat_record)
+    except Exception as e:
+        # Log but do not break the response flow
+        print("Warning: failed to save chat history:", str(e))
+
+    return ChatResponse(response=response_text, session_id=session_id)
+    # --- End Option A fallback ---
+
 async def get_chat_history(request: Request):
     user = await require_auth(request)
     history = await db.chat_history.find({"user_id": user.id}, {"_id": 0}).sort("timestamp", -1).to_list(50)

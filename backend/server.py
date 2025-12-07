@@ -612,6 +612,7 @@ app.include_router(api_router)
 
 raw = os.environ.get("CORS_ORIGINS", "")
 origins = [o.strip() for o in raw.split(",") if o.strip()]
+print("Loaded CORS_ORIGINS:", origins) 
 
 if not origins:
     # Fail fast so you don't accidentally run with wildcard and credentials
@@ -634,7 +635,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

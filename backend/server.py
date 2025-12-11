@@ -22,6 +22,7 @@ def clean_mongo(doc):
         return doc
     doc.pop("_id", None)
     return doc
+
 def stringify_object_ids(obj):
     """
     Recursively convert bson.ObjectId to str so JSON serialization succeeds.
@@ -34,6 +35,7 @@ def stringify_object_ids(obj):
     if isinstance(obj, list):
         return [stringify_object_ids(v) for v in obj]
     return obj
+
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL')
 if not mongo_url:
@@ -295,8 +297,10 @@ async def create_session(request: Request, response: Response):
         max_age=60*60*24*7
     )
 
-    # Return a clean JSON response (explicitly a dict, no ObjectId)
-    return JSONResponse(status_code=200, content={"user": user_data, "session_token": session_token})
+    # Return a clean JSON response (explicitly convert any ObjectId inside)
+    out = {"user": user_data, "session_token": session_token}
+    out = stringify_object_ids(out)
+    return JSONResponse(status_code=200, content=out)
 
 
 @api_router.get("/auth/user")
@@ -679,7 +683,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*'],
 )
 
 # Logging
@@ -692,5 +696,6 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
 
 

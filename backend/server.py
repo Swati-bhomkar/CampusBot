@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
 from dotenv import load_dotenv
+from bson import ObjectId
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -21,7 +22,18 @@ def clean_mongo(doc):
         return doc
     doc.pop("_id", None)
     return doc
-
+def stringify_object_ids(obj):
+    """
+    Recursively convert bson.ObjectId to str so JSON serialization succeeds.
+    Works for dicts, lists, and scalar values.
+    """
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: stringify_object_ids(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [stringify_object_ids(v) for v in obj]
+    return obj
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL')
 if not mongo_url:

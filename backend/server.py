@@ -237,20 +237,30 @@ async def create_session(request: Request, response: Response):
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to get session data: {str(e)}")
 
+    # Build user dict (plain python types only)
     user_data = {
-        "id": data['id'],
-        "email": data['email'],
-        "name": data.get('name', ''),
-        "picture": data.get('picture', ''),
+        "id": str(data.get('id')),
+        "email": str(data.get('email')),
+        "name": str(data.get('name', '')),
+        "picture": str(data.get('picture', '')),
         "is_admin": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
 
-    # check existing user (exclude _id)
+    # Defensive check: ensure email exists
+    if not user_data["email"]:
+        raise HTTPException(status_code=400, detail="Auth provider returned no email")
+
+    # Check existing user — explicitly exclude _id
     existing_user = await db.users.find_one({"email": user_data['email']}, {"_id": 0})
     if not existing_user:
+        # Insert only plain dict (no ObjectId present in user_data)
         await db.users.insert_one(user_data)
+    else:
+        # keep the stored record if present — ensure it's plain dict (should be, because projection excluded _id)
+        user_data = existing_user
 
+    # Create session (plain dict)
     session_token = data.get('session_token') or str(uuid.uuid4())
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     session_data = {
@@ -261,7 +271,7 @@ async def create_session(request: Request, response: Response):
     }
     await db.sessions.insert_one(session_data)
 
-    # set cookie and return user_data (already a plain dict with no ObjectId)
+    # Set cookie
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -272,7 +282,9 @@ async def create_session(request: Request, response: Response):
         max_age=60*60*24*7
     )
 
-    return {"user": user_data, "session_token": session_token}
+    # Return a clean JSON response (explicitly a dict, no ObjectId)
+    return JSONResponse(status_code=200, content={"user": user_data, "session_token": session_token})
+
 
 @api_router.get("/auth/user")
 async def get_user(request: Request):

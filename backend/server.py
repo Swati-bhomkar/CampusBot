@@ -1,5 +1,4 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -15,6 +14,13 @@ import httpx
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Helper to remove Mongo ObjectId before returning/storing
+def clean_mongo(doc):
+    if not doc:
+        return doc
+    doc.pop("_id", None)
+    return doc
+
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL')
 if not mongo_url:
@@ -25,8 +31,6 @@ db = client[os.environ.get('DB_NAME', 'campus_chatbot')]
 
 # Create the main app without a prefix
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 # -------------------------------
@@ -168,7 +172,7 @@ class ChatResponse(BaseModel):
     session_id: str
 
 # -------------------------------
-# Auth helpers
+# Auth helpers (with projection)
 # -------------------------------
 async def get_current_user(request: Request) -> Optional[User]:
     session_token = request.cookies.get('session_token')
@@ -178,12 +182,14 @@ async def get_current_user(request: Request) -> Optional[User]:
             session_token = auth_header.split(' ')[1]
     if not session_token:
         return None
-    session = await db.sessions.find_one({"session_token": session_token})
+
+    session = await db.sessions.find_one({"session_token": session_token}, {"_id": 0})
     if not session:
         return None
-    # parse expires_at if stored as string
+
+    # check expires
+    expires_at = session.get('expires_at')
     try:
-        expires_at = session.get('expires_at')
         if isinstance(expires_at, str):
             expires = datetime.fromisoformat(expires_at)
         else:
@@ -192,6 +198,7 @@ async def get_current_user(request: Request) -> Optional[User]:
             return None
     except Exception:
         return None
+
     user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
     if not user:
         return None
@@ -218,7 +225,7 @@ async def create_session(request: Request, response: Response):
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID required in x-session-id header")
 
-    # Call your external auth endpoint to validate session_id and get user data
+    # Call external auth endpoint to validate session_id and get user data
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
             resp = await client.get(
@@ -239,7 +246,8 @@ async def create_session(request: Request, response: Response):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
 
-    existing_user = await db.users.find_one({"email": user_data['email']})
+    # check existing user (exclude _id)
+    existing_user = await db.users.find_one({"email": user_data['email']}, {"_id": 0})
     if not existing_user:
         await db.users.insert_one(user_data)
 
@@ -253,6 +261,7 @@ async def create_session(request: Request, response: Response):
     }
     await db.sessions.insert_one(session_data)
 
+    # set cookie and return user_data (already a plain dict with no ObjectId)
     response.set_cookie(
         key="session_token",
         value=session_token,
@@ -281,7 +290,7 @@ async def logout(request: Request, response: Response):
     return {"message": "Logged out successfully"}
 
 # -------------------------------
-# FAQ routes (same as you had)
+# FAQ routes
 # -------------------------------
 @api_router.get("/faqs", response_model=List[FAQ])
 async def get_faqs(category: Optional[str] = None):
@@ -330,7 +339,6 @@ async def delete_faq(faq_id: str, request: Request):
 
 # -------------------------------
 # Department, Faculty, Event, Location routes
-# (kept same as your original implementation)
 # -------------------------------
 @api_router.get("/departments", response_model=List[Department])
 async def get_departments():
@@ -506,7 +514,7 @@ async def delete_location(location_id: str, request: Request):
 async def chat_query(query_data: ChatQuery, request: Request):
     user = await get_current_user(request)
 
-    # Fetch relevant campus data
+    # Fetch relevant campus data (exclude _id)
     faqs = await db.faqs.find({}, {"_id": 0}).to_list(1000)
     departments = await db.departments.find({}, {"_id": 0}).to_list(100)
     faculty = await db.faculty.find({}, {"_id": 0}).to_list(100)
@@ -541,7 +549,6 @@ async def chat_query(query_data: ChatQuery, request: Request):
         for loc in locations[:15]:
             context += f"- {loc['name']} (Floor: {loc['floor']})\n"
 
-    # Prepare session id
     session_id = query_data.session_id or str(uuid.uuid4())
 
     # --- Gemini API call ---
@@ -569,33 +576,28 @@ async def chat_query(query_data: ChatQuery, request: Request):
 
         async with httpx.AsyncClient(timeout=60.0) as client:
             try:
-                hf_resp = await client.post(url, json=payload, headers=headers)
-                hf_resp.raise_for_status()
-                data = hf_resp.json()
-                # Try common candidate locations
+                resp = await client.post(url, json=payload, headers=headers)
+                resp.raise_for_status()
+                data = resp.json()
                 response_text = None
                 if isinstance(data, dict):
                     if "candidates" in data and data["candidates"]:
                         cand = data["candidates"][0]
-                        # different API versions use different fields:
                         response_text = cand.get("output") or \
                                         (cand.get("content", [{}])[0].get("parts", [{}])[0].get("text") if cand.get("content") else None) or \
                                         cand.get("text")
                     elif "outputs" in data and isinstance(data["outputs"], list) and data["outputs"]:
-                        # fallback
                         response_text = str(data["outputs"][0])
                     else:
-                        # fallback stringify
                         response_text = str(data)
                 else:
                     response_text = str(data)
             except httpx.HTTPStatusError as exc:
-                # include server error text to help debugging
                 response_text = f"Gemini API error: {exc.response.text}"
             except Exception as exc:
                 response_text = f"Failed to call Gemini: {str(exc)}"
 
-    # Save chat history
+    # Save chat history (ensure stored doc has no _id issues)
     if user:
         chat_record = {
             "id": str(uuid.uuid4()),
@@ -665,4 +667,5 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
 
